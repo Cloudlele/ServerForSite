@@ -28,7 +28,7 @@ class Server(BaseHTTPRequestHandler):
         if self.path == '/data':
             cursor = self.connetToDB().cursor()
             self._set_headers()
-            SQLQuery = ("""Select Books.ID_Book, Books.Title, Books.Years, Books.Count_Download, Books.Rating, Author.Name, Author.Surname
+            SQLQuery = ("""Select Books.ID_Book, Books.Title, Books.Years, Books.Count_Download, Books.Description ,Books.Rating, Author.Name, Author.Surname, Books.Image
                         From Books
                         Join BooksAuthor on Books.ID_Book = BooksAuthor.Code_Books
                         Join Author on BooksAuthor.Code_Author = Author.ID_Author""")
@@ -36,12 +36,14 @@ class Server(BaseHTTPRequestHandler):
             result = cursor.fetchall()
             self.connetToDB().close()
             for i in result:
-                DataDic['ID_Books'] = str(i[0])
-                DataDic['Title'] = str(i[1])
-                DataDic['Years'] = str(i[2])
-                DataDic['Count_Download'] = str(i[3])
-                DataDic['Rating'] = str(i[4])
-                DataDic['Author'] = str(i[5]) + ' ' + str(i[6])
+                DataDic['id'] = str(i[0])
+                DataDic['name'] = str(i[1])
+                DataDic['year'] = str(i[2])
+                DataDic['numOfDownloads'] = str(i[3])
+                DataDic['short_description'] = str(i[4])
+                DataDic['numOfLikes'] = str(i[5])
+                DataDic['author'] = str(i[6]) + ' ' + str(i[7])
+                DataDic['src'] = str(i[8])
                 DataMass.append(DataDic)
                 DataDic = {}
             data = json.dumps(DataMass)
