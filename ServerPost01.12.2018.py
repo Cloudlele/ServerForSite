@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import socket
 import pypyodbc
+import simplejson, cgi, io
 
 
 
@@ -51,16 +52,43 @@ class Server(BaseHTTPRequestHandler):
 
     # POST echoes the message adding a JSON field
     def do_POST(self):
-        content_len = int(self.headers['Content-Length'])
-        post_body = self.rfile.read(content_len).decode('utf-8')
-        # self.end_headers()
-        print(post_body.strip().split())
-        iter = int()
-        for id, i in enumerate(post_body.split()):
-            if 'name' in i:
-                iter = id
-            if id == iter + 1:
-                print(i)
+        form = cgi.FieldStorage(
+            fp=self.rfile,
+            headers=self.headers,
+            environ={
+                'REQUEST_METHOD': 'POST',
+                'CONTENT_TYPE': self.headers['Content-Type'],
+            }
+        )
+
+        # Begin the response
+        self.send_response(200)
+        self.send_header('Content-Type',
+                         'text/plain; charset=utf-8')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+
+        print('Client: {}\n'.format(self.client_address))
+        print('User-agent: {}\n'.format(
+            self.headers['user-agent']))
+        print('Path: {}\n'.format(self.path))
+        print('Form data:\n')
+
+        # Echo back information about what was posted in the form
+        for field in form.keys():
+            field_item = form[field]
+            if field_item.filename:
+                # The field contains an uploaded file
+                file_data = field_item.file.read()
+                file_len = len(file_data)
+                del file_data
+                print('\tUploaded {} as {!r} ({} bytes)\n'.format(field, field_item.filename, file_len)
+                )
+            else:
+                # Regular form value
+                print('\t{}={}\n'.format(
+                    field, form[field].value))
+
 
 def run(server_class=HTTPServer, handler_class=Server, port=8080):
         host_name = socket.gethostbyname(socket.gethostname())
