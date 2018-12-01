@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import socket
 import pypyodbc
-import simplejson, cgi, io
+import cgi
 
 
 
@@ -29,9 +29,9 @@ class Server(BaseHTTPRequestHandler):
         if self.path == '/data':
             cursor = self.connetToDB().cursor()
             self._set_headers()
-            SQLQuery = ("""Select Books.ID_Book, Books.Title, Books.Years, Books.Count_Download, Books.Description ,Books.Rating, Author.Name, Author.Surname, Books.Image
+            SQLQuery = ("""Select Books.ID_Books, Books.Title, Books.Years, Books.Count_Downloads, Books.Description ,Books.Rating, Author.Name, Author.Surname, Books.src
                         From Books
-                        Join BooksAuthor on Books.ID_Book = BooksAuthor.Code_Books
+                        Join BooksAuthor on Books.ID_Books = BooksAuthor.Code_Books
                         Join Author on BooksAuthor.Code_Author = Author.ID_Author""")
             cursor.execute(SQLQuery)
             result = cursor.fetchall()
@@ -52,6 +52,7 @@ class Server(BaseHTTPRequestHandler):
 
     # POST echoes the message adding a JSON field
     def do_POST(self):
+        DataDic = dict()
         form = cgi.FieldStorage(
             fp=self.rfile,
             headers=self.headers,
@@ -62,17 +63,12 @@ class Server(BaseHTTPRequestHandler):
         )
 
         # Begin the response
-        self.send_response(200)
-        self.send_header('Content-Type',
-                         'text/plain; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
 
-        print('Client: {}\n'.format(self.client_address))
-        print('User-agent: {}\n'.format(
-            self.headers['user-agent']))
-        print('Path: {}\n'.format(self.path))
-        print('Form data:\n')
+        # print('Client: {}\n'.format(self.client_address))
+        # print('User-agent: {}\n'.format(
+        #     self.headers['user-agent']))
+        # print('Path: {}\n'.format(self.path))
+        # print('Form data:\n')
 
         # Echo back information about what was posted in the form
         for field in form.keys():
@@ -82,12 +78,42 @@ class Server(BaseHTTPRequestHandler):
                 file_data = field_item.file.read()
                 file_len = len(file_data)
                 del file_data
-                print('\tUploaded {} as {!r} ({} bytes)\n'.format(field, field_item.filename, file_len)
-                )
+                print('\tUploaded {} as {!r} ({} bytes)\n'.format(field, field_item.filename, file_len))
             else:
                 # Regular form value
                 print('\t{}={}\n'.format(
                     field, form[field].value))
+                DataDic[field] = form[field].value
+        print(DataDic)
+        login = str()
+        password = str()
+        for key, value in DataDic.items():
+            if key == 'login':
+                login = value
+            if key == 'psw':
+                password = value
+        print('Login: ', login, '\n', 'Pass: ', password)
+
+        connection = pypyodbc.connect(driver='{SQL Server}', server='DESKTOP-7GE22QK\SQLEXPRESS', database='Library')
+        cursor = connection.cursor()
+        SQLQuery = ('INSERT INTO Client(User_Login, User_Password, Code_Rank) VALUES(' + "'" + login + "'" + ',' + "'" + password + "'" + ',' + "'1' )")
+        try:
+            cursor.execute(SQLQuery)
+            connection.commit()
+            self.send_response(200, 'User add')
+            self.send_header('Content-Type',
+                             'text/plain; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+        except:
+            self.send_response(412, 'User is')
+            self.send_header('Content-Type',
+                             'text/plain; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+        connection.close()
+
+
 
 
 def run(server_class=HTTPServer, handler_class=Server, port=8080):

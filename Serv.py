@@ -28,10 +28,8 @@ class Server(BaseHTTPRequestHandler):
         if self.path == '/data':
             cursor = self.connetToDB().cursor()
             self._set_headers()
-            SQLQuery = ("""Select Books.ID_Book, Books.Title, Books.Years, Books.Count_Download, Books.Description ,Books.Rating, Author.Name, Author.Surname, Books.Image
-                        From Books
-                        Join BooksAuthor on Books.ID_Book = BooksAuthor.Code_Books
-                        Join Author on BooksAuthor.Code_Author = Author.ID_Author""")
+            SQLQuery = ("""Select *
+                        From Books""")
             cursor.execute(SQLQuery)
             result = cursor.fetchall()
             self.connetToDB().close()
