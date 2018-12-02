@@ -87,16 +87,20 @@ class Server(BaseHTTPRequestHandler):
         print(DataDic)
         login = str()
         password = str()
+        email = str()
         for key, value in DataDic.items():
             if key == 'login':
                 login = value
             if key == 'psw':
                 password = value
-        print('Login: ', login, '\n', 'Pass: ', password)
+            if key == 'email':
+                email = value
+        print('Login: ', login, '\n', 'Pass: ', password, '\n', 'Email: ', email)
 
         connection = pypyodbc.connect(driver='{SQL Server}', server='DESKTOP-7GE22QK\SQLEXPRESS', database='Library')
         cursor = connection.cursor()
-        SQLQuery = ('INSERT INTO Client(User_Login, User_Password, Code_Rank) VALUES(' + "'" + login + "'" + ',' + "'" + password + "'" + ',' + "'1' )")
+        SQLQuery = ('INSERT INTO Client(User_Login, User_Password, Email, Code_Rank) VALUES(' + "'" + login + "'"
+                    + ',' + "'" + password + "'" + ',' + "'" + email + "'" + ',' + "'1' )")
         try:
             cursor.execute(SQLQuery)
             connection.commit()

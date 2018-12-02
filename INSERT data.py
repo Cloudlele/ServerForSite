@@ -2,16 +2,16 @@ import pypyodbc
 import json
 import os
 
-login = 'cloeferefeudlelefger'
+login = 'OlegTest'
 password = '12345'
-
-print('Login: ', login, '\n', 'Pass: ', password)
+email = 'omikula123@gmail.com'
+print('Login: ', login, '\n', 'Pass: ', password, '\n', 'Email: ', email)
 connection = pypyodbc.connect(driver='{SQL Server}', server='DESKTOP-7GE22QK\SQLEXPRESS', database='Library')
 cursor = connection.cursor()
 
-SQLQuery = ('INSERT INTO Client(User_Login, User_Password, Code_Rank) VALUES(' + "'" + login + "'" + ',' + "'" + password + "'" + ',' + "'1' )")
+SQLQuery = ('INSERT INTO Client(User_Login, User_Password, Email, Code_Rank) VALUES(' + "'" + login + "'" + ',' + "'" + password + "'" + ',' + "'" + email + "'" + ',' + "'1' )")
+cursor.execute(SQLQuery)
 try:
-    cursor.execute(SQLQuery)
     connection.commit()
 except Exception as e:
     print(e)
