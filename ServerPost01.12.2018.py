@@ -50,6 +50,22 @@ class Server(BaseHTTPRequestHandler):
             data = json.dumps(DataMass)
             self.wfile.write(bytes(str(data).encode()))
 
+        elif '/login' in self.path:
+            userLogin = self.path.split(':')[1]
+            print(userLogin)
+            cursor = self.connetToDB().cursor()
+            self._set_headers()
+            SQLQuery = ("SELECT Client.Code_Rank From Client Where Client.User_Login = " + "'" + userLogin + "'")
+            cursor.execute(SQLQuery)
+            result = cursor.fetchall()
+            self.connetToDB().close()
+            DataDic['Rank'] = result[0]
+            print(DataDic)
+        elif '/logout' in self.path:
+            print(self.path)
+            self._set_headers()
+
+
     # POST echoes the message adding a JSON field
     def do_POST(self):
         DataDic = dict()
@@ -62,13 +78,14 @@ class Server(BaseHTTPRequestHandler):
             }
         )
 
+
         # Begin the response
 
-        # print('Client: {}\n'.format(self.client_address))
-        # print('User-agent: {}\n'.format(
-        #     self.headers['user-agent']))
-        # print('Path: {}\n'.format(self.path))
-        # print('Form data:\n')
+        print('Client: {}\n'.format(self.client_address))
+        print('User-agent: {}\n'.format(
+            self.headers['user-agent']))
+        print('Path: {}\n'.format(self.path))
+        print('Form data:\n')
 
         # Echo back information about what was posted in the form
         for field in form.keys():
@@ -89,18 +106,14 @@ class Server(BaseHTTPRequestHandler):
         password = str()
         email = str()
         leng = len(DataDic)
-
-
-
         """++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"""
-
         if leng == 3:
             for key, value in DataDic.items():
-                if key == 'login':
+                if key == 'userLogin':
                     login = value
-                if key == 'psw':
+                if key == 'userPassword':
                     password = value
-                if key == 'email':
+                if key == 'userEmail':
                     email = value
             connection = pypyodbc.connect(driver='{SQL Server}', server='DESKTOP-7GE22QK\SQLEXPRESS',
                                           database='Library')
@@ -115,7 +128,8 @@ class Server(BaseHTTPRequestHandler):
                                  'text/plain; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-            except:
+            except Exception as e:
+                print(e)
                 self.send_response(406)
                 self.send_header('Content-Type',
                                  'text/plain; charset=utf-8')
@@ -123,18 +137,31 @@ class Server(BaseHTTPRequestHandler):
                 self.end_headers()
             connection.close()
             """____________________________________________________________________"""
-
         elif leng == 2:
             for key, value in DataDic.items():
-                if key == 'login':
+                if key == 'userLogin':
                     login = value
-                if key == 'psw':
+                if key == 'userPassword':
                     password = value
 
+            connection = pypyodbc.connect(driver='{SQL Server}', server='DESKTOP-7GE22QK\SQLEXPRESS',
+                                          database='Library')
 
-
-
-
+            cursor = connection.cursor()
+            SQLQuery = " EXEC Authentefication " + "'" + login + "'" + ',' + "'" + password + "'"
+            cursor.execute(SQLQuery)
+            result = cursor.fetchall()
+            connection.close()
+            if 200 in result[0]:
+                self.send_response(200)
+            elif 202 in result[0]:
+                self.send_response(202)
+            elif 404 in result[0]:
+                self.send_response(404)
+            self.send_header('Content-Type',
+                             'text/plain; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
 
 
 def run(server_class=HTTPServer, handler_class=Server, port=8080):
