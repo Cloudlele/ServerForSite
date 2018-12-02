@@ -88,34 +88,51 @@ class Server(BaseHTTPRequestHandler):
         login = str()
         password = str()
         email = str()
-        for key, value in DataDic.items():
-            if key == 'login':
-                login = value
-            if key == 'psw':
-                password = value
-            if key == 'email':
-                email = value
-        print('Login: ', login, '\n', 'Pass: ', password, '\n', 'Email: ', email)
+        leng = len(DataDic)
 
-        connection = pypyodbc.connect(driver='{SQL Server}', server='DESKTOP-7GE22QK\SQLEXPRESS', database='Library')
-        cursor = connection.cursor()
-        SQLQuery = ('INSERT INTO Client(User_Login, User_Password, Email, Code_Rank) VALUES(' + "'" + login + "'"
-                    + ',' + "'" + password + "'" + ',' + "'" + email + "'" + ',' + "'1' )")
-        try:
-            cursor.execute(SQLQuery)
-            connection.commit()
-            self.send_response(200, 'User add')
-            self.send_header('Content-Type',
-                             'text/plain; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-        except:
-            self.send_response(412, 'User is')
-            self.send_header('Content-Type',
-                             'text/plain; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-        connection.close()
+
+
+        """++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"""
+
+        if leng == 3:
+            for key, value in DataDic.items():
+                if key == 'login':
+                    login = value
+                if key == 'psw':
+                    password = value
+                if key == 'email':
+                    email = value
+            connection = pypyodbc.connect(driver='{SQL Server}', server='DESKTOP-7GE22QK\SQLEXPRESS',
+                                          database='Library')
+            cursor = connection.cursor()
+            SQLQuery = ('INSERT INTO Client(User_Login, User_Password, Email, Code_Rank) VALUES(' + "'" + login + "'"
+                        + ',' + "'" + password + "'" + ',' + "'" + email + "'" + ',' + "'1' )")
+            try:
+                cursor.execute(SQLQuery)
+                connection.commit()
+                self.send_response(201)
+                self.send_header('Content-Type',
+                                 'text/plain; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+            except:
+                self.send_response(406)
+                self.send_header('Content-Type',
+                                 'text/plain; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+            connection.close()
+            """____________________________________________________________________"""
+
+        elif leng == 2:
+            for key, value in DataDic.items():
+                if key == 'login':
+                    login = value
+                if key == 'psw':
+                    password = value
+
+
+
 
 
 
